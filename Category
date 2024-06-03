@@ -1,0 +1,72 @@
+import 'package:flutter/material.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
+
+class CategoriesOperationPage extends StatefulWidget {
+  @override
+  _CategoriesOperationPageState createState() => _CategoriesOperationPageState();
+}
+
+class _CategoriesOperationPageState extends State<CategoriesOperationPage> {
+  final _categoryController = TextEditingController();
+  Database _database;
+
+  Future<void> _initDatabase() async {
+    final databasePath = await getDatabasesPath();
+    final path = join(databasePath, 'categories.db');
+
+    _database = await openDatabase(
+      path,
+      version: 1,
+      onCreate: (db, version) {
+        return db.execute(
+          'CREATE TABLE categories (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)',
+        );
+      },
+    );
+  }
+
+  Future<void> _addCategory() async {
+    await _database.insert(
+      'categories',
+      {'name': _categoryController.text},
+    );
+    _categoryController.clear();
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initDatabase();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Categories Operation'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: _categoryController,
+              decoration: InputDecoration(
+                hintText: 'Enter a category',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: _addCategory,
+              child: Text('Add Category'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
